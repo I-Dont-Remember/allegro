@@ -248,6 +248,75 @@ Example:
                     
 
                     
+                        
+                            <h2>Fields</h2>
+                                <div class="data-wrapper">
+        
+    <div class="params-listing">
+        <ul>
+            <li> 
+                <span >time</span>
+                <span class="type">  <a href="../../time/records/Time.html">Time</a></span>
+                 <span class="default">(default  {time: 0,zone:  {id: }})</span> 
+            </li>
+            <li>
+                <p>
+                    
+                    <p>The <code>time:Time</code> used internally.</p>
+
+                </p>
+            </li>
+        </ul>
+    </div>
+    
+</div>
+
+<script>
+    $(document)
+    .ready(function() {
+
+      // create sidebar and attach to menu open
+      $('.ui.sidebar')
+        .sidebar('attach events', '.toc.item')
+      ;
+
+    })
+  ;
+
+let mainNavLinks = document.querySelectorAll(".primary-list.module ul li a");
+let mainSections = document.querySelectorAll(".main-wrapper section.method-content");
+
+let lastId;
+let cur = [];
+
+let contentWrapper = document.querySelector(".content-wrapper");
+contentWrapper.addEventListener("scroll", event => {
+  let fromTop = contentWrapper.scrollTop;
+
+  mainNavLinks.forEach(link => {
+    let section = document.querySelector("#" + link.attributes.getNamedItem("data").textContent);
+
+    if (
+      section.offsetTop <= fromTop &&
+      section.offsetTop + section.offsetHeight > fromTop
+    ) {
+      link.classList.add("current");
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+</script>
+
+<script>
+    window.onload = (event) => {
+        ballerinaHighlighter.highlightSnippets();
+    };
+</script>
+
+                        
+                    
                 </div>
 
                 

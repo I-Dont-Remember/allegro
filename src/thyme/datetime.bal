@@ -129,10 +129,14 @@ public type Duration object {
 
 # **WIP** To be a wrapper around `time:Time` with simpler access to utility functions
 # about that particular instance of time.
+# 
+# + time - The `time:Time` used internally.
 public type Datetime object {    
 // TODO: how do we want modification to handle changing the underlying Time object?
 // store all properties & time object so we can use it's underlying methods
 // IF we modify something, then we update our time attribute?
+    public time:Time time = {time:0,zone:{id:""}};
+
     function __init() {}
 
     # Clone the current status of a `Datetime`, since it's mutable.
