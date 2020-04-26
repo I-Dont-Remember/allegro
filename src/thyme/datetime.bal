@@ -1,13 +1,8 @@
 import ballerina/io;
-import ballerina/time;
-import ballerina/lang.'int;
 import ballerina/lang.'float;
-# According to https://www.unixtimestamp.com/:
-# "What happens on January 19, 2038? On this date the Unix Time Stamp will 
-# cease to work due to a 32-bit overflow. Before this moment millions of 
-# applications will need to either adopt a new convention for time stamps 
-# or be migrated to 64-bit systems which will buy the time stamp 
-# a "bit" more time. 
+import ballerina/lang.'int;
+import ballerina/math;
+import ballerina/time;
 
 # Properties used by the underlying time:Time lib
 final string[] TIME_UNIT_OPTIONS = [
@@ -38,6 +33,9 @@ final string[] DURATION_UNIT_OPTIONS = [
         "year"
 ];
 
+# Represents a mutable chunk of time without particular start or end.
+# 
+# + values - Stores the map of time unit:value
 public type Duration object {
     map<int> values = {};
     int millisecond = 0;
@@ -49,12 +47,28 @@ public type Duration object {
     int month = 0;
     int year = 0;
 
-    function clone() returns Duration {
+    # Clone the current status of a `Duration`, since it's mutable.
+    # 
+    # Example:
+    # ```
+    # Duration d = someDuration.clone();
+    # ```
+    # 
+    # + return - `Duration`
+    public function clone() returns Duration {
         return self;
     }
 
-
-    function get(string unit) returns int|error {
+    # Get the current value of a single unit type.
+    # 
+    # Example:
+    # ```
+    # int|error i = someDuration.get("hour");
+    # ```
+    # 
+    # + unit - A valid unit from `DURATION_UNIT_OPTIONS`
+    # + return - An `int`, or an `error` if unknown unit
+    public function get(string unit) returns int|error {
         if (self.values.hasKey(unit)) {
             return self.values.get(unit);
         } else {
@@ -62,9 +76,17 @@ public type Duration object {
         }
     }
 
-    // TODO: this name sucks, but can't use in or as except with stupid ' thing
-    // one func for returning whole values, one for floats
-    function totalAsInt(string unit) returns int|error {
+    # Get total value of duration as an `int`.
+    # 
+    # Example:
+    # ```
+    # int|error i = someDuration.totalAsInt("minute");
+    # ```
+    # 
+    # + unit - A valid unit from `DURATION_UNIT_OPTIONS`
+    # + return - An `int`, or an `error` if unknown unit or conversions inside fail
+    public function totalAsInt(string unit) returns int|error {
+        // TODO: this name sucks, but can't use in or as except with stupid ' thing
         // is it safer to check from DURATION_UNIT_OPTIONS than keys()?
         if (self.values.hasKey(unit)) {
             int totalMillis = 0;
@@ -79,8 +101,17 @@ public type Duration object {
         }
     }
 
-    // TODO: this name also sucks
-    function totalAsFloat(string unit) returns float|error {
+    # Get total value of duration as a `float`.
+    # 
+    # Example:
+    # ```
+    # float|error f = someDuration.totalAsFloat("minute");
+    # ```
+    # 
+    # + unit - A valid unit from `DURATION_UNIT_OPTIONS`
+    # + return - A `float`, or an `error` if unknown unit or conversions inside fail
+    public function totalAsFloat(string unit) returns float|error {
+        // TODO: this name also sucks
         // is it safer to check from DURATION_UNIT_OPTIONS than keys()?
         if (self.values.hasKey(unit)) {
             int totalMillis = 0;
@@ -96,19 +127,34 @@ public type Duration object {
     }
 };
 
-# TODO: how do we want modification to handle changing the underlying Time object?
-# store all properties & time object so we can use it's underlying methods
-# IF we modify something, then we update our time attribute?
+# **WIP** To be a wrapper around `time:Time` with simpler access to utility functions
+# about that particular instance of time.
 public type Datetime object {    
+// TODO: how do we want modification to handle changing the underlying Time object?
+// store all properties & time object so we can use it's underlying methods
+// IF we modify something, then we update our time attribute?
     function __init() {}
 
-    function clone() returns Datetime {
+    # Clone the current status of a `Datetime`, since it's mutable.
+    # 
+    # Example:
+    # ```
+    # Datetime d = someDatetime.clone();
+    # ```
+    # 
+    # + return - `Datetime`
+    public function clone() returns Datetime {
         return self;
     }
 };
 
-# update existing keys in a map (given a list of the keys) from a different map's values
-# + return - map<any>
+# Update existing keys in a map (given a list of the keys) from a different map's values.
+# keys not in options will be ignored.
+# 
+# + options - Keys available in the map
+# + orig_map - Original map as base
+# + arg_map -  Map that could contain both valid and invalid keys
+# + return - A `map<any>` to make this usable in many situations
 function update_values(string[] options, map<any> orig_map, map<any> arg_map) returns map<any> {
 // TODO: could be extended to combine options & orig_map, just do orig_map.keys() in here
     map<any> new_map  = {};
@@ -122,8 +168,10 @@ function update_values(string[] options, map<any> orig_map, map<any> arg_map) re
     return new_map;
 }
 
-# create a map 
-# + return - map<int>
+# Create an int map using a list of valid keys and an unknown map of arguments.
+# 
+# + arg_map - Map that could contain both valid and invalid keys
+# + return - A `map<int>`
 function collect_int_values(string[] options, map<int> arg_map) returns map<int> {
     map<int> new_map  = {};
     foreach string option in options {
@@ -136,12 +184,20 @@ function collect_int_values(string[] options, map<int> arg_map) returns map<int>
     return new_map;
 }
 
-########################
-# Public module functions
-########################
+// #############################
+// Public module functions follow
+// ##############################
 
-# desc
-# + return - int|error
+# Convert from a unit to milliseconds.
+#
+# Example:
+# ```
+# int|error millis = toMillis("year", 2.5);
+# ```
+#  
+# + unit - A valid unit from `TIME_UNIT_OPTIONS`
+# + value - An integer of the current unit's value
+# + return - `int` if a valid unit, else an `error`
 public function toMillis(string unit, int value) returns int|error {
     if (unit == "millisecond") {
         // cheeky then, aren't ya?
@@ -188,6 +244,16 @@ public function toMillis(string unit, int value) returns int|error {
     return error(io:sprintf("%s is an unknown unit to convert from", unit));
 }
 
+# Convert from milliseconds to a unit.
+# 
+# Example:
+# ```
+# float|error years = fromMillis("year", 5000000);
+# ```
+# 
+# + unit - A valid unit from `TIME_UNIT_OPTIONS`
+# + milliseconds - Current number of milliseconds
+# + return - `float` if given a valid unit, else an `error`
 public function fromMillis(string unit, int milliseconds) returns float|error {
     if (unit == "millisecond") {
         // cheeky then, aren't ya?
@@ -234,23 +300,28 @@ public function fromMillis(string unit, int milliseconds) returns float|error {
     return error(io:sprintf("%s is an unknown unit to convert from", unit));
 }
 
-#
-# + return - Datetime
+# A simple wrapper to get a new Datetime object from `time:currentTime`.
+# 
+# + return - `Datetime`
 public function now() returns Datetime {
     // TODO: implement
     time:Time now = time:currentTime();
     return new Datetime();
 }
 
-# Create time:Time() from a unix timestamp.
+# Create `time:Time` from a unix timestamp.
 # 
-# Example:
+# Examples:
 # ```ballerina
-# time:Time t = fromTimestamp("1587869442")
+# time:Time t = fromTimestamp("1587869442");
+# time:Time t = fromTimestamp("1587869442.345678");
+# time:Time t = fromTimestamp(1587869442);
+# time:Time t = fromTimestamp(1587869442.345678);
 # ```
 # 
-# + timestamp - a unix timestamp of any flavor (string, float, int)
-# + return - a time:Time with zone UTC
+# + timestamp - Unix timestamp of any flavor: `int`, `float`, 
+#               or a string that parses to either `int` or `float`.
+# + return - A `time:Time` with zone UTC
 public function fromTimestamp(any timestamp) returns time:Time|error {
     // current understanding of timestamp:
     // seconds from unix epoch, if a decimal value those are the milliseconds
@@ -269,7 +340,6 @@ public function fromTimestamp(any timestamp) returns time:Time|error {
         }
     } else if (timestamp is float) {
         milliseconds = <int> timestamp*1000;
-        io:println(io:sprintf("float %f mlli %d", timestamp, milliseconds));
     } else if (timestamp is int) {
         milliseconds = timestamp*1000;
     } else {
@@ -286,21 +356,48 @@ public function fromTimestamp(any timestamp) returns time:Time|error {
     return newTime;
 }
 
+# Find the difference between two `time:Time`.
+# 
+# Example:
+# ```
+# time:Time now = time:parse("09:40:00", "HH:mm:ss");
+# time:Time before = time:parse("09:55:00", "HH:mm:ss");
+# Duration d = difference(before, now);
+# ```
+# 
+# + t1 - First `time:Time`
+# + t2- Second `time:Time`
+# + return - A `Duration` representing the difference in milliseconds, it cannot
+#           be negative as a duration is a scalar, the user has to understand
+#           the direction it goes in time.
 public function difference(time:Time t1, time:Time t2) returns Duration {
-    // we don't need to put this reference, it's just subtraction lol
-    // borrowed from https://stackoverflow.com/questions/52145669/subtracting-a-two-time-values-in-ballerina
-    // TODO: what happens if this is negative?
     int millisecondsDiff = t2.time - t1.time;
     return duration({
-        millisecond: millisecondsDiff
+        millisecond: math:absInt(millisecondsDiff)
     });
 }
 
-# Need a duration object, should be able to pass a string instead
-# duration({'seconds': 5, minutes: 10});
-# + return - Duration
+# Create a `Duration` from a map.
+# 
+# 
+# Example:
+# ```
+# Duration d = duration({seconds: 5, minutes: 10});
+# ```
+# + args - Map of valid units from `TIME_UNIT_OPTIONS` and desired values.
+#          A duration is a scalar, the user has to understand
+#          the direction they want it to go in time, so negative values will be converted.
+# + return - `Duration`
 public function duration(map<int> args) returns Duration {
     map<int> values = collect_int_values(DURATION_UNIT_OPTIONS, args);
+
+    //"Wow my chicken only took -5 minutes to cook!", we can't get time back from doing things,
+    // absolute value to prevent negatives.
+    foreach [string, int] pair in values.entries() {
+        var [map_unit, value] = pair;
+        values[map_unit] = math:absInt(value);
+    }
+
     Duration newDuration = new Duration();
 
     newDuration.values = values;
@@ -315,11 +412,21 @@ public function duration(map<int> args) returns Duration {
     return newDuration;
 }
 
-// TODO: don't force them to create duration, allow option for us to create inside for user
-# cleaner version of addDuration
-# time.add(duration), this could be nice taking string instead of just time
-# + return - time:Time
+# Easier version of `time:addDuration`.
+# 
+# Example:
+# ```
+# time:Time now = time:currentTime();
+# Duration minuteRice = duration({minute: 1});
+# time:Time doneCooking = add(now, minuteRice);
+# ```
+# 
+# + originalTime - Base `time:Time` you would like to modify
+# + d - `Duration`
+# + return - A new `time:Time`
 public function add(time:Time originalTime, Duration d) returns time:Time {
+// time.add(duration), this could be nice taking string instead of just time
+// TODO: don't force them to create duration, allow option for us to create inside for user
     return time:addDuration(
         originalTime,
         d.year,
@@ -332,11 +439,20 @@ public function add(time:Time originalTime, Duration d) returns time:Time {
     );
 }
 
-// TODO: don't force them to create duration, allow option for us to create inside for user
-# cleaner version of subtractDuration
-# time.subtract(duration)
-# + return - time:Time
+# Easier version of `time:subtractDuration`.
+# 
+# Example:
+# ```
+# time:Time now = time:currentTime();
+# Duration aLongTimeAgo = duration({day: 5});
+# time:Time whenIShouldHaveCleanedRoom = subtract(now, aLongTimeAgo);
+# ```
+# 
+# + originalTime - Base `time:Time` you would like to modify
+# + d - `Duration`
+# + return - `time:Time`
 public function subtract(time:Time originalTime, Duration d) returns time:Time {
+    // TODO: don't force them to create duration, allow option for us to create inside for user
     return time:subtractDuration(
         originalTime,
         d.year,
@@ -349,8 +465,20 @@ public function subtract(time:Time originalTime, Duration d) returns time:Time {
     );
 }
 
-# set but given a map
-# + return - time:Time
+# Update a `time:Time` with a map of the fields to change.
+# 
+# Example:
+# ```
+# time:Time updated = setFromMap({
+#   year: 2025,
+#   hour: 15,
+#   zoneId: "America/Indiana/Knox"
+# });
+# ```
+# 
+# + t - `time:Time` to modify
+# + args - fields to be changed, ignores keys not in `TIME_UNIT_OPTIONS`
+# + return - `time:Time` or `error` if `time` library fails
 public function setFromMap(time:Time t, map<any> args) returns time:Time|error {
     map<any> currentValues = {
         year: time:getYear(t),
@@ -363,10 +491,8 @@ public function setFromMap(time:Time t, map<any> args) returns time:Time|error {
         zoneId: t.zone.id
     };
 
-    io:println(currentValues);
     map<any> u = update_values(TIME_UNIT_OPTIONS, currentValues, args);
 
-    io:println(u);
     return time:createTime(
                 <int> u["year"],
                 <int> u["month"],
@@ -378,12 +504,33 @@ public function setFromMap(time:Time t, map<any> args) returns time:Time|error {
                 <string> u["zoneId"]);
 }
 
-# desc
-# + return - time:Time
+# Update a `time:Time` attribute **Note:** Not a conversion, just directly changing attributes.
+# Don't expect this function to handle converting everything if you change timezone.
+# 
+# Example:
+# ```
+# time:Time now = time:currentTime();
+# time:Time updated = set(now, "zoneId", "America/Indiana/Knox");
+# ```
+# 
+# + t - `time:Time` to modify
+# + attr - Field to be changed, errors if not in TIME_UNIT_OPTIONS
+# + value - Value to set the field to
+# + return - `time:Time`
 public function set(time:Time t, string attr, int value) returns time:Time|error {
-    map<any> args = {};
-    args[attr] = value;
-    return setFromMap(t, args);
-}
+    boolean isValid = false;
+    TIME_UNIT_OPTIONS.forEach(function (string option) {
+        if (attr == option) {
+            isValid = true;
+        }
+    });
 
+    if (!isValid) {
+        return error(io:sprintf("%s is not a valid unit", attr));
+    } else {
+        map<any> args = {};
+        args[attr] = value;
+        return setFromMap(t, args);
+    }
+}
 

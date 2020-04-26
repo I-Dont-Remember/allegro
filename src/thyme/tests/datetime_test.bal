@@ -45,14 +45,11 @@ function getRandomDuration() returns Duration|error {
 }
 
 function getRandomTime() returns time:Time|error {
-    // TODO: make this random hehe
-    string tz = "America/Panama"; 
+    // TODO: make this random so it's not a sucky tester
+    string tz = "America/Indiana/Knox"; 
     time:Time timeCreated = check time:createTime(2017, 3, 28, 23, 42, 45,
         554, tz);
     return timeCreated;
-    // if (timeCreated is time:Time) {
-    //     io:println("Created Time: ", time:toString(timeCreated));
-    // }
 }
 
 # TODO: all these tests are probably low quality til we get a better direction
@@ -114,7 +111,7 @@ function getRandomTimestamp(string format = "int") returns any|error {
 }
 
 @test:Config {}
-function testFromTimestampString() {
+function testFromTimestampStringInt() {
     // TODO: there seems like there's a much less messy way to do error handling for this
     // maybe in the beforetest fixture?
     any|error randomTs = getRandomTimestamp(format="string");
@@ -124,18 +121,37 @@ function testFromTimestampString() {
         int millisecond = value*1000;
         time:Time|error t =  fromTimestamp(randomTs);
         if (t is error) {
-            test:assertFail(io:sprintf(SETUP_FAILED_MSG, t));
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, t.reason()));
         } else {
-            io:println(t);
             test:assertEquals(t.time, millisecond, "millisecond should match");
         }
-    } else {
-        if (randomTs is error) {
-            test:assertFail(io:sprintf(SETUP_FAILED_MSG, randomTs));            
-        } else {
-            test:assertFail(io:sprintf(SETUP_FAILED_MSG, value));            
-        }
+    } else if (randomTs is error) {
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, randomTs.reason()));            
+    } else if (value is error) {
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, value.reason()));            
+    }
+}
 
+@test:Config {}
+function testFromTimestampStringFloat() {
+    // TODO: there seems like there's a much less messy way to do error handling for this
+    // maybe in the beforetest fixture?
+    any|error randomTs = getRandomTimestamp(format="string");
+    // TODO: brittle test
+    float|error value = 'float:fromString("32503680000.12345");
+    if (randomTs is string && value is float) {
+        // even if float extends farther, those values get lost because they can't be captured in milliseconds for time:Time
+        int millisecond = <int> value*1000;
+        time:Time|error t =  fromTimestamp(randomTs);
+        if (t is error) {
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, t.reason()));
+        } else {
+            test:assertEquals(t.time, millisecond, "millisecond should match");
+        }
+    } else if (randomTs is error) {
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, randomTs.reason()));            
+    } else if (value is error) {
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, value.reason()));            
     }
 }
 
@@ -143,16 +159,15 @@ function testFromTimestampString() {
 function testFromTimestampInt() {
     any|error randomTs = getRandomTimestamp(format="int");
     int millisecond = <int> randomTs*1000;
-    if (randomTs is int) {
+    if (randomTs is error) {
+        test:assertFail(io:sprintf(SETUP_FAILED_MSG, randomTs.reason()));
+    } else {
         time:Time|error t =  fromTimestamp(randomTs);
         if (t is error) {
-            test:assertFail(SETUP_FAILED_MSG);
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, t.reason()));
         } else {
-            io:println(t);
             test:assertEquals(t.time, millisecond, "millisecond should match");
         }
-    } else {
-        test:assertFail(SETUP_FAILED_MSG);
     }
 }
 
@@ -160,16 +175,15 @@ function testFromTimestampInt() {
 function testFromTimestampFloat() {
     any|error randomTs = getRandomTimestamp(format="float");
     int millisecond = <int> randomTs*1000;
-    if (randomTs is float) {
+    if (randomTs is error) {
+        test:assertFail(io:sprintf(SETUP_FAILED_MSG, randomTs.reason()));
+    } else {
         time:Time|error t =  fromTimestamp(randomTs);
         if (t is error) {
-            test:assertFail(SETUP_FAILED_MSG);
+            test:assertFail(io:sprintf(SETUP_FAILED_MSG, t.reason()));
         } else {
-            io:println(t);
             test:assertEquals(t.time, millisecond, "millisecond should match");
         }
-    } else {
-        test:assertFail(SETUP_FAILED_MSG);
     }
 }
 
@@ -181,12 +195,23 @@ function testSet() {
     int value = 2050;
     time:Time|error updated = set(randomTime, attr, value);
     if (updated is error) {
-        panic updated;
+        
     } else {
-        io:println(updated);
-        test:assertEquals(time:getYear(updated), value, "Year should be set to new value");
+        int year = time:getYear(updated);
+        test:assertEquals(year, value, "Year should be set to new value");
     }
 }
+
+@test:Config {
+    before: "setRandomTime"
+}
+function testSetErrorsGivenInvalidKey() { 
+    string attr = "i'm on a boat";
+    int value = 2050;
+    time:Time|error updated = set(randomTime, attr, value);
+    test:assertTrue(updated is error, "should get error with invalid unit: " + attr);
+}
+
 
 @test:Config {
     before: "setRandomTime"
@@ -196,29 +221,16 @@ function testSetFromMap() {
     int value = 2050;
     map<any> args = {
         year: 2050,
-        zoneId: "America/Panama"
+        zoneId: "America/Indiana/Vevay"
     };
     time:Time|error updated = setFromMap(randomTime, args);
     if (updated is error) {
         panic updated;
     } else {
-        io:println(updated);
         test:assertEquals(time:getYear(updated), args["year"], "Year should be set to new value");
         test:assertEquals(updated.zone.id, args["zoneId"], "Year should be set to new value");
     }
 }
-
-// initial concept: If you are using data providers please check if types return from data provider match test function parameter types.
-// function toMillisDataProvider() returns [string, int, int][]) {
-//     // unit, value, expected
-//     [string, int, int][] data = [
-//         ["millisecond", 1, 1]
-//     ];
-//     io:println(data);
-//     io:println("data^^");
-//     return data;
-// }
-
 
 // stopgap, dataProvider is less useful if we can't pass tuples or any[]
 function toMillisDataProvider() returns (string[][]) {
@@ -239,12 +251,11 @@ function toMillisDataProvider() returns (string[][]) {
     dataProvider: "toMillisDataProvider"
 }
 function testToMillis(string unit, string valueStr, string expectedStr) {
-    io:println(io:sprintf("unit %s value %s expected %s", unit, valueStr, expectedStr));
     int|error value = 'int:fromString(valueStr);
     int|error expected = 'int:fromString(expectedStr);
     
     if (value is error || expected is error) {
-        test:assertFail(SETUP_FAILED_MSG);
+        test:assertFail(io:sprintf("One of these failed: %s - %s", value, expected));
     } else {
         int|error answer = toMillis(unit, value);
         test:assertEquals(answer, expected, io:sprintf("unit failure - %s", unit));
@@ -257,7 +268,6 @@ function testToMillisInvalidUnitReturnsError() {
     string unit = "house";
     int value = 0;
     int|error answer = toMillis(unit, value);
-    io:println(answer);
     test:assertTrue(answer is error, "should get error with invalid unit: " + unit);
 }
 
@@ -279,14 +289,13 @@ function fromMillisDataProvider() returns (string[][]) {
     dataProvider: "fromMillisDataProvider"
 }
 function testFromMillis(string unit, string msStr, string expectedStr) {
-    io:println(io:sprintf("unit %s value %s expected %s", unit, msStr, expectedStr));
     int|error millisecond = 'int:fromString(msStr);
     float|error expected = 'float:fromString(expectedStr);
     
     if (millisecond is error) {
-        test:assertFail(io:sprintf(SETUP_FAILED_MSG, millisecond));        
+        test:assertFail(io:sprintf(SETUP_FAILED_MSG, millisecond.reason()));        
     } else if (expected is error) {
-        test:assertFail(io:sprintf(SETUP_FAILED_MSG,expected));
+        test:assertFail(io:sprintf(SETUP_FAILED_MSG,expected.reason()));
     } else {
         float|error answer = fromMillis(unit, millisecond);
         test:assertEquals(answer, expected, io:sprintf("unit failure - %s", unit));
@@ -300,7 +309,6 @@ function testFromMillisInvalidUnitReturnsError() {
     string unit = "House";
     int millisecond = 0;
     float|error answer = fromMillis(unit, millisecond);
-    io:println(answer);
     test:assertTrue(answer is error, "should get error with invalid unit: " + unit);
 }
 
@@ -394,6 +402,5 @@ function testTotalAsFloatInvalidUnitReturnsError() {
     // TODO: brittle test
     string unit = "House";
     float|error answer = randomDuration.totalAsFloat(unit);
-    io:println(answer);
     test:assertTrue(answer is error, "should get error with invalid unit: " + unit);
 }
