@@ -2,6 +2,11 @@
 test:
 	ballerina test -a
 
+push:
+	# build it first
+	ballerina build -c thyme
+	ballerina push thyme
+
 # would be cool if instead of phony we could force docs to compile if there are changes
 docs:
 	ballerina doc -a
