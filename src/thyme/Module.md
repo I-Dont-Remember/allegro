@@ -3,7 +3,7 @@
 Thyme aims to work in harmony with the stdlib `time` module while enhancing the experience for
 developers, so they can concentrate on building their widget.  Inspired by the great options available in other languages; such as Momentjs, Arrow, Pendulum, and others.
 
-Documentation: [i-dont-remember.github.io/thyme/index.html](https://i-dont-remember.github.io/thyme/index.html).
+Documentation: [i-dont-remember.github.io/thyme/](https://i-dont-remember.github.io/thyme/).
 
 **Note**: _Until it has reached version 1.0, there will be breaking changes as I figure out improvements and what direction to take it. If you are interested in using the module and worried about things breaking, please reach out so I know and can adjust, otherwise I will rampage through this codebase with no regard._
 

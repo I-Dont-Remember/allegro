@@ -9,6 +9,15 @@ docs:
 	cp -r ./target/apidocs/* ./docs/
 	# make thyme module top level so github pages link isn't /thyme/thyme
 	cp -r ./docs/thyme/* ./docs/
-	# update index to point to correct location of resources
-	sed -i.bak -r 's:\.\.\/:\.\/:g' docs/index.htmlm
-
+	# remove the original
+	rm -rf ./docs/thyme/
+	# update index to point to correct location of resources and nav
+	sed -i -r 's:\.\.\/:\.\/:g' docs/index.html
+	sed -i -r 's:\.\/thyme\/:\.\/:g' docs/index.html
+	# update functions file
+	sed -i -r 's:\.\.\/:\.\/:g' docs/functions.html
+	sed -i -r 's:\.\/thyme\/:\.\/:g' docs/functions.html
+	# lower directories we have to fix path different ../../ becomes ../ (specify multiple like {objects,types})
+	find docs/objects/ -type f -name '*.html' -exec sed -i -r 's:\.\.\/\.\.\/:\.\.\/:g' {} \;
+	# update ../thyme to ../
+	find docs/objects/ -type f -name '*.html' -exec sed -i -r 's:\.\.\/thyme\/:\.\.\/:g' {} \;

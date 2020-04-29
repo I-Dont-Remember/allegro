@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-    <title>API Docs - i-dont-remember/thyme</title>
+    <title>API Docs - i_dont_remember/thyme</title>
     <script src="./html-template-resources/jquery.min.js"></script>
 
     <!-- BIO THEME START -->
@@ -57,13 +57,13 @@
             
 
     
-        <div class="version">v0.1.0</div>
+        <div class="version">v0.2.0</div>
     
 
 
 <div class="primary-list module">
     
-        <a href="./thyme/index.html">
+        <a href="./index.html">
             <h3>thyme</h3>
         </a>
     
@@ -71,14 +71,14 @@
         
         
             <li>
-                <a  data="objects" href="./thyme/index.html#objects">Objects</a>
+                <a  data="objects" href="./index.html#objects">Objects</a>
             </li>
         
         
         
         
             <li>
-                <a data="functions" href="./thyme/index.html#functions">Functions</a>
+                <a data="functions" href="./index.html#functions">Functions</a>
             </li>
         
         
@@ -95,7 +95,7 @@
         <ul>
             
                 <li>
-                    <a href="./thyme/index.html">thyme</a>
+                    <a href="./index.html">thyme</a>
                 </li>
             
         </ul>
@@ -116,13 +116,13 @@
                 
 
     
-        <div class="version">v0.1.0</div>
+        <div class="version">v0.2.0</div>
     
 
 
 <div class="primary-list module">
     
-        <a href="./thyme/index.html">
+        <a href="./index.html">
             <h3>thyme</h3>
         </a>
     
@@ -130,14 +130,14 @@
         
         
             <li>
-                <a  data="objects" href="./thyme/index.html#objects">Objects</a>
+                <a  data="objects" href="./index.html#objects">Objects</a>
             </li>
         
         
         
         
             <li>
-                <a data="functions" href="./thyme/index.html#functions">Functions</a>
+                <a data="functions" href="./index.html#functions">Functions</a>
             </li>
         
         
@@ -154,7 +154,7 @@
         <ul>
             
                 <li>
-                    <a href="./thyme/index.html">thyme</a>
+                    <a href="./index.html">thyme</a>
                 </li>
             
         </ul>
@@ -183,7 +183,12 @@
                     
                 </h1>
                     <h1>Module Overview</h1>
-<p>Thyme is a library to make working with dates &amp; times a bit easier. Inspired by the many great options available in other languages, such as momentjs, arrow, pendulum, and many more.</p>
+<p>Thyme aims to work in harmony with the stdlib <code>time</code> module while enhancing the experience for
+developers, so they can concentrate on building their widget.  Inspired by the great options available in other languages; such as Momentjs, Arrow, Pendulum, and others.</p>
+<p>Documentation: <a href="https://i-dont-remember.github.io/thyme/">i-dont-remember.github.io/thyme/</a>.</p>
+<p><strong>Note</strong>: <em>Until it has reached version 1.0, there will be breaking changes as I figure out improvements and what direction to take it. If you are interested in using the module and worried about things breaking, please reach out so I know and can adjust, otherwise I will rampage through this codebase with no regard.</em></p>
+<h1>Usage</h1>
+<p>See examples provided in the docs linked above.</p>
 <h1>TIME_UNIT_OPTIONS / DURATION_UNIT_OPTIONS</h1>
 <p>In the current implementation, duration matches these except for <code>zoneId</code>. In the future, it may switch to duration using suffix <code>-s</code> as it sounds a little nicer.</p>
 <pre><code class="language-ballerina">[
@@ -198,6 +203,16 @@
     &quot;zoneId&quot;
 ];
 </code></pre>
+<h1>Contributions</h1>
+<p>Issues and PRs are more than welcome! Feel free to reach out if you have any questions.</p>
+<h1>Misc</h1>
+<p>A neat piece of time info, according to <a href="https://www.unixtimestamp.com/">unixtimestamp.com</a>:</p>
+<blockquote>
+<p>What happens on January 19, 2038? On this date the Unix Time Stamp will
+cease to work due to a 32-bit overflow. Before this moment millions of
+applications will need to either adopt a new convention for time stamps
+or be migrated to 64-bit systems which will buy the time stamp a &quot;bit&quot; more time.</p>
+</blockquote>
 
 
             
